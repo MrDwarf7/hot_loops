@@ -1,0 +1,32 @@
+via: fizz_buzz_batch_unsafe @ 'const BIG_NUM: usize = 100_000_000;'
+
+ ❯ hyperfine --warmup 5 --min-runs 20 './target/release/hot_loops'
+Benchmark 1: ./target/release/hot_loops
+  Time (mean ± σ):      4.426 s ±  3.408 s    [User: 0.632 s, System: 7.437 s]
+  Range (min … max):    0.754 s …  9.271 s    20 runs
+
+
+
+via: fizz_buzz_batch @ 'const BIG_NUM: usize = 100_000_000;'
+
+ ❯ hyperfine --warmup 5 --min-runs 20 './target/release/hot_loops'
+Benchmark 1: ./target/release/hot_loops
+  Time (mean ± σ):     710.7 ms ±   5.2 ms    [User: 1342.6 ms, System: 55.2 ms]
+  Range (min … max):   701.5 ms … 726.4 ms    20 runs
+
+
+-------------------------------
+
+
+via: fizz_buzz_batch_unsafe @ 'const BIG_NUM: usize = 100_000;'
+ ❯ hyperfine --warmup 5 --min-runs 20 -N './target/release/hot_loops'
+Benchmark 1: ./target/release/hot_loops
+  Time (mean ± σ):       1.0 ms ±   0.1 ms    [User: 0.6 ms, System: 0.8 ms]
+  Range (min … max):     0.8 ms …   1.7 ms    2894 runs
+
+
+via: fizz_buzz_batch @ 'const BIG_NUM: usize = 100_000;'
+ ❯ hyperfine --warmup 5 --min-runs 20 -N './target/release/hot_loops'
+Benchmark 1: ./target/release/hot_loops
+  Time (mean ± σ):       1.4 ms ±   0.1 ms    [User: 1.5 ms, System: 0.7 ms]
+  Range (min … max):     1.1 ms …   2.0 ms    2129 runs
