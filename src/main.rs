@@ -1,5 +1,6 @@
 #![feature(vec_into_raw_parts)]
 use anyhow::Result;
+use std::io::Write;
 use std::sync::{Arc, atomic::AtomicUsize};
 
 const BIG_NUM: usize = 100_000_000;
@@ -8,7 +9,7 @@ const CHUNK_SIZE: usize = 8192;
 fn main() -> Result<()> {
     let num_cpus = num_cpus::get();
 
-    // let buffer = Arc::new(parking_lot::Mutex::new(std::io::stdout()));
+    let buffer = Arc::new(parking_lot::Mutex::new(std::io::stdout()));
 
     let total_chunks = BIG_NUM.div_ceil(CHUNK_SIZE);
     println!("Total chunks: {}", total_chunks);
@@ -20,7 +21,7 @@ fn main() -> Result<()> {
     std::thread::scope(|s| {
         for _ in num_cpus.saturating_sub(1)..=num_cpus {
             let atomic = Arc::clone(&atomic);
-            // let stdout = Arc::clone(&buffer);
+            let buffer = Arc::clone(&buffer);
             let global_cheksum = Arc::clone(&global_cheksum);
 
             s.spawn(move || {
@@ -45,12 +46,16 @@ fn main() -> Result<()> {
                     }
 
                     ///////////////////////
-                    // {
-                    //     let mut handle = stdout.lock();
-                    //     handle.write_all(&local_buffer).unwrap_or_else(|e| {
-                    //         eprintln!("Error writing to stdout: {:?}", e);
-                    //     });
-                    // }
+                    {
+                        // let mut handle = stdout.lock();
+                        buffer.lock().write_all(&local_buffer).unwrap_or_else(|e| {
+                            eprintln!("Error writing to stdout: {:?}", e);
+                        });
+
+                        // std::io::Write::write_all(&mut buffer, &local_buffer).unwrap_or_else(|e| {
+                        //     eprintln!("Error writing to stdout: {:?}", e);
+                        // });
+                    }
                 }
 
                 global_cheksum
@@ -64,7 +69,7 @@ fn main() -> Result<()> {
         global_cheksum.load(std::sync::atomic::Ordering::SeqCst)
     );
 
-    // buffer.lock().flush()?;
+    buffer.lock().flush()?;
     Ok(())
 }
 
